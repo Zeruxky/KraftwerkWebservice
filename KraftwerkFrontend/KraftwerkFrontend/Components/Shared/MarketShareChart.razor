@@ -1,40 +1,23 @@
 @using Color = Vizor.ECharts.Color
 @using Label = Vizor.ECharts.Label
-@using Tooltip = Vizor.ECharts.Tooltip
 
 <Vizor.ECharts.EChart CssClass="abs h-100 w-50" @ref="@chart" Options="@options"/>
 
 @code {
-    [Parameter] public Dictionary<string, (string,double)> MarketShares { get; set; } = new Dictionary<string, (string,double)>();
-    
     private EChart? chart;
 
     private readonly ChartOptions options = new()
     {
-        Legend = new Legend
-        {
-            Show = false
-        },
-        Title = new Title()
-        {
-            Show = true,
-            Left = "center",
-            Text = "MarketShare",
-            TextStyle = new TextStyle()
-            {
-	            Color = Color.FromRGB(255, 255, 255),
-            }
-        },
-        Series = new List<ISeries>
-        {
-            new PieSeries()
-            {
-                Label = new Label() {
-                    Color = Color.FromRGB(150, 150, 150),
-                }
-            },
-        }
+        Legend = new Legend { Show = false, },
+        Title = new Title() { Show = true, Left = "center", Text = "MarketShare", TextStyle = new TextStyle() { Color = Color.FromRGB(255, 255, 255), }, },
+        Series =
+        [
+            new PieSeries() { Label = new Label() { Color = Color.FromRGB(150, 150, 150), }, },
+        ],
     };
+
+    [Parameter]
+    public Dictionary<string, (string, double)> MarketShares { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -42,24 +25,27 @@
         {
             return;
         }
-        var values = MarketShares.ToList().ConvertAll(x => new PieSeriesData{Name = x.Value.Item1,Value = x.Value.Item2}).ToArray();
-        (options.Series[0] as PieSeries).Data = values;
-        await Task.Run(() => chart.UpdateAsync());
 
+        if (this.options.Series?[0] is PieSeries pieSeries)
+        {
+            pieSeries.Data = this.MarketShares.Select(item => new PieSeriesData(item.Value.Item1, item.Value.Item2));
+        }
+
+        await this.chart.UpdateAsync();
     }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         if (chart == null)
         {
             return;
         }
-        
-        var values = MarketShares.ToList().ConvertAll(x => new PieSeriesData{Name = x.Value.Item1,Value = x.Value.Item2}).ToArray();
-    
-        (options.Series[0] as PieSeries).Data = values;
-        Task.Run(() => chart.UpdateAsync());
 
+        if (this.options.Series?[0] is PieSeries pieSeries)
+        {
+            pieSeries.Data = this.MarketShares.Select(item => new PieSeriesData(item.Value.Item1, item.Value.Item2));
+        }
+
+        await this.chart.UpdateAsync();
     }
-
 }

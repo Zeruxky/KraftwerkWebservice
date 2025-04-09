@@ -16,67 +16,96 @@
             <ConsumptionChart Time="@Time" ConsumptionList="@expectedConsumption"></ConsumptionChart>
             <MarketShareChart MarketShares="@marketShares"></MarketShareChart>
         </div>
-        <div class="row align-content-center w-100 h-50 d-flex"><ProductionChart ProductionList="@productionList"></ProductionChart></div>
+        <div class="row align-content-center w-100 h-50 d-flex">
+            <ProductionChart ProductionList="@productionList"></ProductionChart>
+        </div>
     </div>
 </div>
 
 
 @code {
-    HubConnection hub;
     private double[][] expectedConsumption = new double[24][];
-    private List<(DateTime,double)> productionList = new List<(DateTime,double)>();
+    private readonly List<(DateTime, double)> productionList = [];
 
-    private Dictionary<string, (string,double)> marketShares = new Dictionary<string, (string,double)>();
-    private int Time { get; set; } = 0;
-    private string? ID { get; set;}
+    private readonly Dictionary<string, (string, double)> marketShares = new();
 
-    public class MarketShare
-    {
-        public string Name { get; set; }
-        public double Value { get; set; }
-    }
+    [Inject]
+    public required HubConnection Hub { get; init; }
     
+    [Inject]
+    public required ILogger<Overview> Logger { get; init; }
     
+    private int Time { get; set; }
+
+    private string? Id { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        hub = new HubConnectionBuilder()
-            .WithUrl("https://localhost:7272/Powergrid")
-            .Build();
-        await hub.StartAsync();
-        await hub.SendAsync("GetExpectedConsume");
-        hub.On<Dictionary< int, double>>("ReceiveExpectedConsume", async (message) =>
-        {
-            double[][] new_list = new double[24][];
-            List<double> values = message.Values.ToList();
-            for (int i = 0; i < message.Count(); i++)
+        await this.ConnectToHubAsync();
+        await Hub.SendAsync("GetExpectedConsumeAsync");
+        Hub.On<Dictionary<int, double>>(
+            "ReceiveExpectedConsumeAsync",
+            async message =>
             {
-                new_list[i] = [i, values[i]];
-            };
-            expectedConsumption = new_list;
-            await InvokeAsync(StateHasChanged);
-        });
-        hub.On<int>("ReceiveTime", async (message) =>
-        {
-            Time = message;
-            await InvokeAsync(StateHasChanged);
-        });
-        hub.On<double>("ReceiveEnergy", async (message) =>
-        {
-            if (productionList.Count >= 9)
+                var newList = new double[24][];
+                var values = message.Values.ToArray();
+                for (var i = 0; i < message.Count(); i++)
+                {
+                    newList[i] = [i, values[i],];
+                }
+
+                expectedConsumption = newList;
+                await InvokeAsync(StateHasChanged);
+            });
+        Hub.On<int>(
+            "ReceiveTimeAsync",
+            async message =>
             {
-                productionList.RemoveAt(0);
-            }
-            productionList.Add((DateTime.Now,message / 10000.0));
-            await InvokeAsync(StateHasChanged);
-        });
-        hub.On<Dictionary<string, MarketShare>>("ReceivePieChartData",async (message) =>
-        {
-            marketShares.Clear();
-            message.ToList().ForEach(x =>
+                Time = message;
+                await InvokeAsync(StateHasChanged);
+            });
+        Hub.On<double>(
+            "ReceiveEnergyAsync",
+            async message =>
             {
-                marketShares[x.Key] = (x.Value.Name, x.Value.Value);
-            }); await InvokeAsync(StateHasChanged);
-        });
+                if (productionList.Count >= 9)
+                {
+                    productionList.RemoveAt(0);
+                }
+
+                productionList.Add((DateTime.Now, message / 10000.0));
+                await InvokeAsync(StateHasChanged);
+            });
+        Hub.On<Dictionary<string, MarketShare>>(
+            "ReceivePieChartDataAsync",
+            async message =>
+            {
+                marketShares.Clear();
+                message.ToList().ForEach(x => { marketShares[x.Key] = (x.Value.Name, x.Value.Value); });
+                await InvokeAsync(StateHasChanged);
+            });
     }
     
+    private async Task ConnectToHubAsync()
+    {
+        while (this.Hub.State == HubConnectionState.Disconnected)
+        {
+            try
+            {
+                await Hub.StartAsync();
+            }
+            catch (Exception e)
+            {
+                this.Logger.LogError(e, "Server not running or not possible to connect...");
+                await Task.Delay(1000);
+            }
+        }
+    }
+
+    public record MarketShare
+    {
+        public string Name { get; init; } = string.Empty;
+
+        public double Value { get; init; }
+    }
 }

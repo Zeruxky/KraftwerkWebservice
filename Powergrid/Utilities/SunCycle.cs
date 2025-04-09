@@ -1,23 +1,4 @@
-﻿namespace Powergrid2.Utilities;
-
-public class SineSquaredCurve
-{
-    private double currentAngle;
-    private readonly double stepAngle;
-
-    public SineSquaredCurve(int repeatAfterSteps)
-    {
-        this.currentAngle = 0;
-        this.stepAngle = Math.PI / repeatAfterSteps;
-    }
-
-    public double NextValue()
-    {
-        double value = Math.Pow(Math.Sin(this.currentAngle), 2);
-        this.currentAngle = (this.currentAngle + this.stepAngle) % (2 * Math.PI);
-        return value;
-    }
-}
+﻿namespace Powergrid.Utilities;
 
 public class SunCycle
 {
@@ -29,7 +10,7 @@ public class SunCycle
     {
         this.sineSquaredCurve = new SineSquaredCurve(repeatAfterSteps);
         this.random = new Random();
-        GenerateValues();
+        this.GenerateValues();
     }
 
     private double SampleRandomDouble(double minVal, double maxVal)
@@ -41,7 +22,7 @@ public class SunCycle
     {
         for (int i = 0; i < 24 * 60; i++)
         {
-            cycleValues.Add(GetNextNoisyPvValue(10));
+            this.cycleValues.Add(this.GetNextNoisyPvValue(10));
         }
     }
 
@@ -57,6 +38,6 @@ public class SunCycle
 
     public double GetValueOfTime(int minutesPassed)
     {
-        return cycleValues[minutesPassed];
+        return this.cycleValues[minutesPassed];
     }
 }

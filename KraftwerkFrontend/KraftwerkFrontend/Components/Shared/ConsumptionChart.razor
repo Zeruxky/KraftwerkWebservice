@@ -1,111 +1,74 @@
-@using Vizor.ECharts;
 @using Color = Vizor.ECharts.Color
 @using Label = Vizor.ECharts.Label
 @using Tooltip = Vizor.ECharts.Tooltip
-@using Blazorise.Extensions
 
 <Vizor.ECharts.EChart CssClass="abs h-100 w-50" @ref="@chart" Options="@options"/>
 
 @code {
-    [Parameter] public int Time { get; set; } = 0;
-    [Parameter] public double[][] ConsumptionList { get; set; } = new double[24][];
-
     private Vizor.ECharts.EChart? chart;
 
     private ChartOptions options = new()
     {
-        YAxis = new YAxis()
-        {
-            Type = AxisType.Value,
-            
-        },
-        Title = new Title()
-        {
-            Show = true,
-            Left = "center",
-            Text = "Consumption",
-            TextStyle = new TextStyle()
-            {
-	            Color = Color.FromRGB(255, 255, 255),
-            }
-
-        },
-        XAxis = new XAxis()
-        {
-            Max = 23,
-            AxisPointer = new AxisPointer()
-            {
-                Show = true,
-                Value  = 0.1,
-                Snap = false,
-                Label = new Label()
-                {
-                    Formatter = new StringOrFunction(new JavascriptFunction("function (value) { return `${String(Math.trunc(value.value)).padStart(2,'0')}:${String(Math.round(value.value*60%60)).padStart(2,'0')}`; }")),
-                },
-                LineStyle = new LineStyle()
-                {
-                    Color = "#ffffff",
-                    Width = 2,
-                },
-                Handle = new Handle()
-                {
-                    Show = true,
-                    Size = 0,
-                }
-                
-            },
-            Type = AxisType.Value,
-            
-        },
-        Tooltip = new Tooltip()
-        {
-            TriggerOn = TriggerOn.None
-        },
-        Legend = new Legend()
-        {
-            Orient = Orient.Vertical,
-            Left = "left"
-        },
-        Series = new List<ISeries>()
-        {
-            new LineSeries()
-            {
-                Emphasis = new()
-                {
-                    ItemStyle = new()
-                    {
-                        ShadowBlur = 10,
-                        ShadowOffsetX = 0,
-                        ShadowColor = Color.FromRGBA(0, 0, 0, 0.5)
-                    }
-                }
-            }
-        }
+        YAxis = new YAxis() { Type = AxisType.Value, },
+        Title = new Title() { Show = true, Left = "center", Text = "Consumption", TextStyle = new TextStyle() { Color = Color.FromRGB(255, 255, 255), }, },
+        XAxis = new XAxis() { Max = 23, AxisPointer = new AxisPointer() { Show = true, Value = 0.1, Snap = false, Label = new Label() { Formatter = new StringOrFunction(new JavascriptFunction("function (value) { return `${String(Math.trunc(value.value)).padStart(2,'0')}:${String(Math.round(value.value*60%60)).padStart(2,'0')}`; }")), }, LineStyle = new LineStyle() { Color = "#ffffff", Width = 2, }, Handle = new Handle() { Show = true, Size = 0, }, }, Type = AxisType.Value, },
+        Tooltip = new Tooltip() { TriggerOn = TriggerOn.None, },
+        Legend = new Legend() { Orient = Orient.Vertical, Left = "left", },
+        Series =
+        [
+            new LineSeries() { Emphasis = new Emphasis { ItemStyle = new ItemStyle { ShadowBlur = 10, ShadowOffsetX = 0, ShadowColor = Color.FromRGBA(0, 0, 0, 0.5), }, }, },
+        ],
     };
-    
+
+    [Parameter]
+    public int Time { get; set; }
+
+    [Parameter]
+    public double[][] ConsumptionList { get; set; } = new double[24][];
+
     protected override async Task OnInitializedAsync()
     {
-        if (ConsumptionList.Length == 0)
+        if (this.ConsumptionList.Length == 0)
         {
-            for (int i = 0; i < 24; i++)
+            for (var i = 0; i < 24; i++)
             {
-                ConsumptionList[i] = [(double)i,0.0];
+                this.ConsumptionList[i] = [i, 0.0,];
             }
         }
-        (options.Series[0] as LineSeries).Data = ConsumptionList;
-        options.XAxis.AxisPointer.Value = 0.0;
 
+        if (this.options.Series?[0] is LineSeries lineSeries)
+        {
+            lineSeries.Data = ConsumptionList;
+        }
+
+        var axisPointer = this.options.XAxis?.AxisPointer;
+        if (axisPointer is not null)
+        {
+            axisPointer.Value = 0.0;
+        }
+
+        await Task.CompletedTask;
     }
 
-    protected override void OnParametersSet()
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
     {
-        options.XAxis.AxisPointer.Value = Time / 60.0 % 23.0;
-        (options.Series[0] as LineSeries).Data = ConsumptionList;
-        if (chart == null)
+        var axisPointer = this.options.XAxis?.AxisPointer;
+        if (axisPointer is not null)
+        {
+            axisPointer.Value = this.Time / 60.0 % 23.0;
+        }
+        
+        if (this.options.Series?[0] is LineSeries lineSeries)
+        {
+            lineSeries.Data = this.ConsumptionList;
+        }
+        
+        if (this.chart is null)
         {
             return;
         }
-        Task.Run(() => chart.UpdateAsync());
-    }
 
+        await this.chart.UpdateAsync();
+    }
 }

@@ -1,39 +1,35 @@
 using System.Reflection;
+using Powergrid.PowerGrid;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddJsonFile("appsettings.json", true, true);
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(x =>
-{
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    x.IncludeXmlComments(xmlPath);
-});
+builder.Services.AddSwaggerGen(
+    x =>
+    {
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        x.IncludeXmlComments(xmlPath);
+    });
 
 // Register the Grid as a singleton
 builder.Services.AddSingleton<Grid>();
+builder.Services.AddSignalR();
 
 // Add logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-builder.Host.ConfigureLogging(logging =>
-{
-    logging.ClearProviders();
-    logging.AddConsole();
-});
-
-
-builder.Services.AddControllersWithViews();
-builder.Services.AddSignalR();
 
 var app = builder.Build();
-
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
@@ -51,10 +47,9 @@ app.MapControllerRoute(
 
 app.MapHub<PowergridHub>("/Powergrid");
 
-
 // Configure the HTTP request pipeline.
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync().ConfigureAwait(false);

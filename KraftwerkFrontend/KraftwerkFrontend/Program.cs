@@ -2,19 +2,16 @@ using KraftwerkFrontend.Components;
 using Blazorise;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
+using Microsoft.AspNetCore.SignalR.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.WebHost.UseUrls("https://localhost:7272");
-
+builder.Services.AddSingleton(new HubConnectionBuilder().WithUrl("https://localhost:7272/Powergrid").Build());
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services
-    .AddBlazorise(options =>
-    {
-        options.Immediate = true;
-    })
+    .AddBlazorise(options => { options.Immediate = true; })
     .AddBootstrap5Providers()
     .AddFontAwesomeIcons();
 
@@ -36,4 +33,4 @@ app.UseAntiforgery();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.Run();
+await app.RunAsync().ConfigureAwait(false);

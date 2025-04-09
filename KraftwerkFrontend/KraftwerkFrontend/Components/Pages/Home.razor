@@ -1,7 +1,9 @@
 ﻿@page "/"
+@using System.Globalization
 @using Blazorise.Charts
 @using Blazorise.Charts.Streaming
 @using Microsoft.AspNetCore.SignalR.Client
+@using ChartOptions = Blazorise.Charts.ChartOptions
 @rendermode InteractiveServer
 
 
@@ -10,7 +12,7 @@
     <Modal @bind-Visible="@blackoutVisible">
         <ModalContent Centered>
             <ModalHeader>
-                <CloseButton />
+                <CloseButton/>
             </ModalHeader>
             <ModalBody>
                 <h4>🗲 Blackout 🗲</h4>
@@ -20,12 +22,13 @@
     <div class="d-flex flex-column">
         <div class="d-flex flex-row justify-content-center">
             <div class="d-flex flex-row p-1 min-h-100">
-                <button class="btn btn-primary m-1" @onclick="ChangeStartStop">@(Stopped == false ? "Stop" : "Start")</button>
+                <button class="btn btn-primary m-1"
+                        @onclick="ChangeStartStop">@(Stopped == false ? "Stop" : "Start")</button>
                 <button class="btn btn-primary m-1" @onclick="Reset">Reset</button>
             </div>
             <div class="align-self-center">
                 <select class="form-select" @onchange="OnDropdownChange">
-                    <option selected>Select vour Member: </option>
+                    <option selected>Select vour Member:</option>
                     @foreach (var member in Members.Where(x => x.Value.Contains("Consumer")))
                     {
                         <option value="@member.Key">@member.Value</option>
@@ -33,95 +36,132 @@
                 </select>
             </div>
             <div class="align-self-center d-flex flex-row m-1">
-	            <NumericPicker Placeholder=@AmountText @bind-Value="@CurrentMemberMultiplicator"/>
-	            <button class="btn btn-primary ms-1" @onclick="ChangeConsumerAmount">Save</button>
+                <NumericPicker Placeholder=@AmountText @bind-Value="@CurrentMemberMultiplicator"/>
+                <button class="btn btn-primary ms-1" @onclick="ChangeConsumerAmountAsync">Save</button>
             </div>
             <div class="align-self-center my-auto h-100 ms-1">
-	            <label  class="form-label align-self-center" style="margin-bottom: 0rem !important" for="password">
-		            Password: 
-	            </label>
-	            <input type="password" id="password" @bind-value="@typedPassword"/>
+                <label class="form-label align-self-center" style="margin-bottom: 0rem !important" for="password">
+                    Password:
+                </label>
+                <input type="password" id="password" @bind-value="@typedPassword"/>
             </div>
-            
+
 
             <div class="d-flex flex-row mx-auto p-1 align-items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" height="2rem" width="2rem" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="1.5" clip-rule="evenodd" viewBox="0 0 6 9" fill="none" stroke="#fff"><path stroke-width=".5" d="M3.13 8.061H.25l.72-4.32h1.44l.72 4.32Zm0-1.44h2.402v1.44H3.13zm0 0v-.99h1.771l.631.99H3.13Z"/><path stroke-width=".1" d="M1.919 1.75c0-.061.05-.11.113-.11.062 0 .113.049.113.11a.113.113 0 0 1 .154-.04.11.11 0 0 1 .041.151.116.116 0 0 1 .155.041.11.11 0 0 1-.042.151c.063 0 .113.05.113.111s-.05.111-.113.111a.11.11 0 0 1 .042.151.116.116 0 0 1-.155.041.11.11 0 0 1-.041.151.114.114 0 0 1-.154-.041.112.112 0 0 1-.113.111.112.112 0 0 1-.113-.111.116.116 0 0 1-.155.041.11.11 0 0 1-.041-.151.114.114 0 0 1-.154-.041.108.108 0 0 1 .041-.151.112.112 0 0 1-.113-.111c0-.061.051-.111.113-.111a.108.108 0 0 1-.041-.151.114.114 0 0 1 .154-.041.11.11 0 0 1 .041-.151.115.115 0 0 1 .155.04ZM2.758.745c0-.045.038-.081.085-.081.046 0 .084.036.084.081a.087.087 0 0 1 .116-.03.08.08 0 0 1 .031.11.086.086 0 0 1 .115.03.08.08 0 0 1-.031.11c.047 0 .085.036.085.08a.084.084 0 0 1-.085.081c.04.022.054.071.031.11a.087.087 0 0 1-.115.029.08.08 0 0 1-.031.11.087.087 0 0 1-.116-.03.083.083 0 0 1-.084.081.083.083 0 0 1-.085-.081.086.086 0 0 1-.115.03.08.08 0 0 1-.031-.11.087.087 0 0 1-.115-.029.077.077 0 0 1 .031-.11.084.084 0 0 1-.085-.081c0-.044.038-.08.085-.08-.041-.023-.055-.072-.031-.11a.086.086 0 0 1 .115-.03.08.08 0 0 1 .031-.11.086.086 0 0 1 .115.03Zm.69-.642c0-.029.024-.053.054-.053.031 0 .055.024.055.053a.057.057 0 0 1 .075-.02.052.052 0 0 1 .021.073.056.056 0 0 1 .075.019.051.051 0 0 1-.021.072c.031 0 .055.024.055.053a.054.054 0 0 1-.055.053.051.051 0 0 1 .021.072.056.056 0 0 1-.075.019.051.051 0 0 1-.021.072.056.056 0 0 1-.075-.019.054.054 0 0 1-.055.053.054.054 0 0 1-.054-.053.056.056 0 0 1-.075.019.051.051 0 0 1-.021-.072.056.056 0 0 1-.075-.019.052.052 0 0 1 .02-.072A.054.054 0 0 1 3.243.3c0-.029.024-.053.054-.053a.052.052 0 0 1-.02-.072.056.056 0 0 1 .075-.019.052.052 0 0 1 .021-.073.057.057 0 0 1 .075.02Z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" height="2rem" width="2rem"
+                     fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="1.5"
+                     clip-rule="evenodd" viewBox="0 0 6 9" fill="none" stroke="#fff"><path stroke-width=".5"
+                                                                                           d="M3.13 8.061H.25l.72-4.32h1.44l.72 4.32Zm0-1.44h2.402v1.44H3.13zm0 0v-.99h1.771l.631.99H3.13Z"/>
+                    <path stroke-width=".1"
+                          d="M1.919 1.75c0-.061.05-.11.113-.11.062 0 .113.049.113.11a.113.113 0 0 1 .154-.04.11.11 0 0 1 .041.151.116.116 0 0 1 .155.041.11.11 0 0 1-.042.151c.063 0 .113.05.113.111s-.05.111-.113.111a.11.11 0 0 1 .042.151.116.116 0 0 1-.155.041.11.11 0 0 1-.041.151.114.114 0 0 1-.154-.041.112.112 0 0 1-.113.111.112.112 0 0 1-.113-.111.116.116 0 0 1-.155.041.11.11 0 0 1-.041-.151.114.114 0 0 1-.154-.041.108.108 0 0 1 .041-.151.112.112 0 0 1-.113-.111c0-.061.051-.111.113-.111a.108.108 0 0 1-.041-.151.114.114 0 0 1 .154-.041.11.11 0 0 1 .041-.151.115.115 0 0 1 .155.04ZM2.758.745c0-.045.038-.081.085-.081.046 0 .084.036.084.081a.087.087 0 0 1 .116-.03.08.08 0 0 1 .031.11.086.086 0 0 1 .115.03.08.08 0 0 1-.031.11c.047 0 .085.036.085.08a.084.084 0 0 1-.085.081c.04.022.054.071.031.11a.087.087 0 0 1-.115.029.08.08 0 0 1-.031.11.087.087 0 0 1-.116-.03.083.083 0 0 1-.084.081.083.083 0 0 1-.085-.081.086.086 0 0 1-.115.03.08.08 0 0 1-.031-.11.087.087 0 0 1-.115-.029.077.077 0 0 1 .031-.11.084.084 0 0 1-.085-.081c0-.044.038-.08.085-.08-.041-.023-.055-.072-.031-.11a.086.086 0 0 1 .115-.03.08.08 0 0 1 .031-.11.086.086 0 0 1 .115.03Zm.69-.642c0-.029.024-.053.054-.053.031 0 .055.024.055.053a.057.057 0 0 1 .075-.02.052.052 0 0 1 .021.073.056.056 0 0 1 .075.019.051.051 0 0 1-.021.072c.031 0 .055.024.055.053a.054.054 0 0 1-.055.053.051.051 0 0 1 .021.072.056.056 0 0 1-.075.019.051.051 0 0 1-.021.072.056.056 0 0 1-.075-.019.054.054 0 0 1-.055.053.054.054 0 0 1-.054-.053.056.056 0 0 1-.075.019.051.051 0 0 1-.021-.072.056.056 0 0 1-.075-.019.052.052 0 0 1 .02-.072A.054.054 0 0 1 3.243.3c0-.029.024-.053.054-.053a.052.052 0 0 1-.02-.072.056.056 0 0 1 .075-.019.052.052 0 0 1 .021-.073.057.057 0 0 1 .075.02Z"/></svg>
                 <h3 class="m-2 align-self-center me-4">: @Members.Count(x => x.Value.Contains("Powerplant"))
                 </h3>
-                <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" height="2rem" width="2rem" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="1.5" clip-rule="evenodd" viewBox="0 0 34 47" fill="none" stroke="#fff"><path stroke-width="3.92" d="M80 66.068V80H48V66.068" transform="matrix(.5 0 0 .86974 -15 -24.58)"/><path stroke-width="2.47" d="m64 54.201 8 11.883H56l8-11.883Z" transform="matrix(1.23412 0 0 1 -61.984 -33.201)"/><path stroke-width="1.67" d="M14.36 38.161h5.28V45h-5.28z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" height="2rem" width="2rem"
+                     fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="1.5"
+                     clip-rule="evenodd" viewBox="0 0 34 47" fill="none" stroke="#fff"><path stroke-width="3.92"
+                                                                                             d="M80 66.068V80H48V66.068"
+                                                                                             transform="matrix(.5 0 0 .86974 -15 -24.58)"/>
+                    <path stroke-width="2.47" d="m64 54.201 8 11.883H56l8-11.883Z"
+                          transform="matrix(1.23412 0 0 1 -61.984 -33.201)"/>
+                    <path stroke-width="1.67" d="M14.36 38.161h5.28V45h-5.28z"/></svg>
 
                 <h3 class="m-2 align-self-center">: @Members.Count(x => x.Value.Contains("Consumer"))
                 </h3>
             </div>
             <div class="ms-auto align-self-center me-2 d-flex flex-row">
-	            <div class="align-self-center my-auto h-100">
-		            <label class="form-label align-self-center" style="margin-bottom: 0rem !important" for="pauseMidnightCheckbox">
-			            Stop at midnight: 
-		            </label>
-		            <InputCheckbox class="me-3" @bind-Value="@checkboxMidnightStop"  id="pauseMidnightCheckbox"/>
-	            </div>
-	            <h3 class="my-auto me-4">@CurrentTime.AddMinutes(Time).TimeOfDay</h3>
+                <div class="align-self-center my-auto h-100">
+                    <label class="form-label align-self-center" style="margin-bottom: 0rem !important"
+                           for="pauseMidnightCheckbox">
+                        Stop at midnight:
+                    </label>
+                    <InputCheckbox class="me-3" @bind-Value="@checkboxMidnightStop" id="pauseMidnightCheckbox"/>
+                </div>
+                <h3 class="my-auto me-4">@currentTime.AddMinutes(Time).TimeOfDay</h3>
             </div>
         </div>
         <div class="p-3">
             <div class="card">
                 <div class="card-body">
-                    <LineChart @ref="horizontalLineChart" TItem="LiveDataPoint" OptionsObject="@horizontalLineChartOptions">
+                    <LineChart @ref="horizontalLineChart" TItem="LiveDataPoint"
+                               OptionsObject="@horizontalLineChartOptions">
                         <ChartStreaming TItem="LiveDataPoint"
                                         Options="new ChartStreamingOptions { Delay = 2000 }"
-                                        Refreshed="@OnHorizontalLineRefreshed" />
+                                        Refreshed="@OnHorizontalLineRefreshed"/>
                     </LineChart>
                 </div>
             </div>
         </div>
-        
+
     </div>
 </div>
 
 @code {
-    private bool checkboxMidnightStop = false;
 
-    public bool blackoutVisible = false;
+    private static readonly List<string> BackgroundColors =
+    [
+        ChartColor.FromRgba(255, 99, 132, 0.6f),
+        ChartColor.FromRgba(54, 162, 235, 1),
+        ChartColor.FromRgba(255, 206, 86, 0.2f),
+        ChartColor.FromRgba(75, 192, 192, 0.2f),
+        ChartColor.FromRgba(153, 102, 255, 0.2f),
+        ChartColor.FromRgba(255, 159, 64, 0.2f),
+    ];
 
-    public int currentMemberMultiplicator;
+    private static readonly LineChartDataset<LiveDataPoint> LineChartDataset = new() { Data = [], BackgroundColor = BackgroundColors[0], BorderColor = BackgroundColors[0], Fill = true, Tension = (float?)0.4, PointRadius = 3, CubicInterpolationMode = "monotone", };
 
-    public string typedPassword;
-    public string masterPassword = "wd2024";
+    private readonly ChartOptions horizontalLineChartOptions = new() { Scales = new ChartScales() { Y = new ChartAxis() { Title = new ChartScaleTitle() { Display = false, Text = "Frequency", }, Min = -3, Max = 3, Ticks = new ChartAxisTicks() { Callback = (value, index, values) => (value + 50).ToString(CultureInfo.InvariantCulture), Color = "#ffffff", Font = new ChartFont() { Size = 32, }, }, Grid = new ChartAxisGridLine() { Color = "#ffffff", }, }, X = new ChartAxis() { Type = "realtime", Display = true, }, }, };
+    private readonly DateTime currentTime = new();
+
+    private const string MasterPassword = "wd2024";
+
+    private bool checkboxMidnightStop;
+    private bool blackoutVisible;
+    private int currentMemberMultiplicator;
+    private string? typedPassword;
+    private LineChart<LiveDataPoint> horizontalLineChart = new();
+
+    [Inject]
+    public required HubConnection Hub { get; init; }
+
+    [Inject]
+    public required ILogger<Home> Logger { get; init; }
+
+    private int CurrentMemberMultiplicator
+    {
+        get => this.currentMemberMultiplicator;
+        set
+        {
+            this.currentMemberMultiplicator = value;
+            if (this.ActiveMember is not null)
+            {
+                var activeMember = this.ActiveMember.Value;
+                this.MultiplicatorDictionary[activeMember.Key] = value;
+            }
+        }
+    }
+
+    public bool Stopped { get; set; }
+
+    public double Energy { get; set; }
+
+    public int Time { get; set; }
 
     public string AmountText { get; set; } = "Amount for selection";
 
     public KeyValuePair<string, string>? ActiveMember { get; set; }
 
-    public LineChart<LiveDataPoint> horizontalLineChart;
     public Dictionary<string, string> Members { get; set; } = new();
+
     public Dictionary<string, int> MultiplicatorDictionary { get; set; } = new();
-    public bool Stopped { get; set; } = false;
-    
-    HubConnection hub;
-    public double Energy { get; set; } = 0;
-    public int Time { get; set; } = 0;
-    public DateTime CurrentTime = new DateTime();
-
-    public int GetAmountPowerplants()
-    {
-        return Members.Count(x => x.Value.Contains("Powerplant"));
-    }
-
-    public int CurrentMemberMultiplicator
-    {
-        get { return this.currentMemberMultiplicator; }
-        set
-        {
-            this.currentMemberMultiplicator = value;
-            MultiplicatorDictionary[ActiveMember.Value.Key] = value;
-        }
-    }
 
     private void OnDropdownChange(ChangeEventArgs e)
     {
-        if (typedPassword != masterPassword) return;
+        if (!MasterPassword.Equals(this.typedPassword, StringComparison.Ordinal))
+        {
+            return;
+        }
 
-        if ((e.Value is string dropdownValue) && !String.IsNullOrWhiteSpace(dropdownValue))
+        if (e.Value is string dropdownValue && !string.IsNullOrWhiteSpace(dropdownValue))
         {
             ActiveMember = Members.FirstOrDefault(x => x.Key == dropdownValue);
             CurrentMemberMultiplicator = MultiplicatorDictionary.FirstOrDefault(x => x.Key == dropdownValue).Value;
@@ -137,45 +177,22 @@
     {
         if (firstRender)
         {
-            await Task.WhenAll(
-                HandleRedraw(horizontalLineChart, GetLineChartDataset));
+            await this.horizontalLineChart.Clear();
+            await this.horizontalLineChart.AddLabelsDatasetsAndUpdate(["Red",], LineChartDataset);
         }
-    }
-
-    async Task HandleRedraw<TDataSet, TItem, TOptions, TModel>(BaseChart<TDataSet, TItem, TOptions, TModel> chart, params Func<TDataSet>[] getDataSets)
-        where TDataSet : ChartDataset<TItem>
-        where TOptions : Blazorise.Charts.ChartOptions
-        where TModel : ChartModel
-    {
-        await chart.Clear();
-        await chart.AddLabelsDatasetsAndUpdate(new []{"Red"}, getDataSets.Select(x => x.Invoke()).ToArray());
-    }
-
-    LineChartDataset<LiveDataPoint> GetLineChartDataset()
-    {
-        return new LineChartDataset<LiveDataPoint>
-        {
-            Data = new List<LiveDataPoint> { new LiveDataPoint {} },
-            BackgroundColor = backgroundColors[0],
-            BorderColor = backgroundColors[0],
-            Fill = true,
-            Tension = (float?)0.4,
-            PointRadius = 3,
-            CubicInterpolationMode = "monotone",
-        };
     }
 
     private async Task ConnectToHub()
     {
-        while (hub.State == HubConnectionState.Disconnected)
+        while (this.Hub.State == HubConnectionState.Disconnected)
         {
             try
             {
-                await hub.StartAsync();
+                await Hub.StartAsync();
             }
-            catch (Exception _)
+            catch (Exception e)
             {
-                Console.WriteLine("Error: Server not running or not possible to connect...");
+                this.Logger.LogError(e, "Server not running or not possible to connect...");
                 await Task.Delay(1000);
             }
         }
@@ -183,131 +200,116 @@
 
     protected override async Task OnInitializedAsync()
     {
-        hub = new HubConnectionBuilder()
-            .WithUrl("https://localhost:7272/Powergrid")
-            .Build();
-
         await ConnectToHub();
-        await hub.SendAsync("GetMemberDataR");
-        await hub.SendAsync("StartStop");
-        hub.On<double>("ReceiveEnergy", async (message) =>
-        {
-            Energy = message;
-            await InvokeAsync(StateHasChanged);
-        });
-        hub.On("ReceiveBlackout", async () =>
-        {
-            blackoutVisible = true;
-            await InvokeAsync(StateHasChanged);
-        });
-        hub.On<bool>("ReceiveStop", async (message) =>
-        {
-            Stopped = message;
-            await InvokeAsync(StateHasChanged);
-
-        });
-        hub.On<int>("ReceiveTime", async (message) =>
-        {
-            Time = message;
-            if (checkboxMidnightStop && Time % 1440 == 0 && !Stopped)
+        await Hub.SendAsync("GetMemberDataAsync");
+        await Hub.SendAsync("StartStopAsync");
+        Hub.On<double>(
+            "ReceiveEnergyAsync",
+            async message =>
             {
-                await ChangeStartStop();
-            }
-            await InvokeAsync(StateHasChanged);
-        });
-
-        hub.On<Dictionary<string, string>>("ReceiveMembers", async (message) =>
-        {
-            Members = message;
-            foreach (var member in Members)
+                Energy = message;
+                await InvokeAsync(StateHasChanged);
+            });
+        Hub.On(
+            "ReceiveBlackoutAsync",
+            async () =>
             {
-                if (member.Value.Contains("Consumer"))
+                blackoutVisible = true;
+                await InvokeAsync(StateHasChanged);
+            });
+        Hub.On<bool>(
+            "ReceiveStopAsync",
+            async message =>
+            {
+                Stopped = message;
+                await InvokeAsync(StateHasChanged);
+            });
+        Hub.On<int>(
+            "ReceiveTimeAsync",
+            async message =>
+            {
+                Time = message;
+                if (checkboxMidnightStop && Time % 1440 == 0 && !Stopped)
                 {
-                    MultiplicatorDictionary.Add(member.Key, 500);
-                    continue;
+                    await ChangeStartStop();
                 }
-                MultiplicatorDictionary.Add(member.Key, 5);
-            }
-            await InvokeAsync(StateHasChanged);
-        });
 
-        hub.On<Dictionary<string, int>>("ReceiveMemberData", async (message) =>
-        {
-            MultiplicatorDictionary = message;
-        });
+                await InvokeAsync(StateHasChanged);
+            });
+
+        Hub.On<Dictionary<string, string>>(
+            "ReceiveMembersAsync",
+            async message =>
+            {
+                Members = message;
+                foreach (var member in Members)
+                {
+                    if (member.Value.Contains("Consumer"))
+                    {
+                        MultiplicatorDictionary.Add(member.Key, 500);
+                        continue;
+                    }
+
+                    MultiplicatorDictionary.Add(member.Key, 5);
+                }
+
+                await InvokeAsync(StateHasChanged);
+            });
+
+        Hub.On<Dictionary<string, int>>(
+            "ReceiveMemberDataAsync",
+            async message =>
+            {
+                MultiplicatorDictionary = message;
+                await Task.CompletedTask;
+            });
     }
 
-    public async Task ChangeConsumerAmount()
+    private async Task ChangeConsumerAmountAsync()
     {
-        await hub.SendAsync("ChangeMultiplicatorAmountR", ActiveMember.Value.Key, CurrentMemberMultiplicator);
+        var activeMember = this.ActiveMember;
+        if (activeMember is null)
+        {
+            return;
+        }
+
+        await this.Hub.SendAsync("ChangeMultiplicatorAmountAsync", activeMember.Value.Key, CurrentMemberMultiplicator).ConfigureAwait(false);
     }
 
     private async Task ChangeStartStop()
     {
-        if (typedPassword != masterPassword) return;
-        Stopped = Stopped == true ? false : true;
-        await hub.SendAsync("StartStop");
+        if (!MasterPassword.Equals(this.typedPassword, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        Stopped = Stopped != true;
+
+        await Hub.SendAsync("StartStopAsync");
     }
+
     private async Task Reset()
     {
-        if (typedPassword != masterPassword) return;
-        await hub.SendAsync("ResetEnergyR");
+        if (!MasterPassword.Equals(this.typedPassword, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        await this.Hub.SendAsync("ResetEnergyAsync");
         Energy = 0;
     }
 
+    private async Task OnHorizontalLineRefreshed(ChartStreamingData<LiveDataPoint> data)
+    {
+        data.Value = new LiveDataPoint { X = DateTime.Now, Y = Energy / 10000, };
 
-    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.6f), ChartColor.FromRgba(54, 162, 235, 1), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
+        await Task.CompletedTask;
+    }
 
     public struct LiveDataPoint
     {
-        public object X { get; set; }
-        public object Y { get; set; }
-    }
+        public DateTime X { get; init; }
 
-    private object horizontalLineChartOptions = new Blazorise.Charts.ChartOptions()
-    {
-        Scales = new ChartScales()
-        {
-            Y = new ChartAxis()
-            {
-                Title = new ChartScaleTitle()
-                {
-                    Display = false,
-                    Text = "Frequency",
-
-                },
-                Min = -3,
-                Max = 3,
-                Ticks = new ChartAxisTicks()
-                {
-                    Callback = (value,index,values) => (value + 50).ToString(),
-                    Color = "#ffffff",
-                    Font = new ChartFont()
-                    {
-                        Size = 32,
-                    }
-                },
-                Grid = new ChartAxisGridLine()
-                {
-                    Color = "#ffffff",
-                },
-            },
-            X = new ChartAxis()
-            {
-                Type  = "realtime",
-                Display = true,
-            },
-        },
-    };
-
-    Task OnHorizontalLineRefreshed(ChartStreamingData<LiveDataPoint> data)
-    {
-        data.Value = new LiveDataPoint
-        {
-            X = DateTime.Now,
-            Y = (Energy / 10000)
-        };
-
-        return Task.CompletedTask;
+        public double Y { get; init; }
     }
 }

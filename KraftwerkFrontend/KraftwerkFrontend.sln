@@ -9,6 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Powergrid", "..\Powergrid\P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerEndpoint", "..\ConsumerEndpoint\ConsumerEndpoint.csproj", "{6A803147-1799-4E5D-9A93-7E6676AFDF1F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{8BF3A3C3-3E89-4134-9E5D-ABCA0A312371}"
+	ProjectSection(SolutionItems) = preProject
+		..\How to play.docx = ..\How to play.docx
+		..\README.md = ..\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
